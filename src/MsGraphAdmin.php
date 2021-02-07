@@ -158,7 +158,7 @@ class MsGraphAdmin
     }
 
     /**
-     * __call catches all requests when no founf method is requested
+     * __call catches all requests when no found method is requested
      * @param  $function - the verb to execute
      * @param  $args - array of arguments
      * @return guzzle request

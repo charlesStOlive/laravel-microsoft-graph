@@ -95,10 +95,12 @@ class Emails extends MsGraph
            $params = http_build_query($params);
         }
 
-        $folder = $folderId == null ? 'Inbox' : $folderId;
+        $folder = $folderId == null ? 'Boîte de réception' : $folderId;
 
         //get inbox from folders list
         $folder = MsGraph::get("me/mailFolders?\$filter=startswith(displayName,'$folder')");
+
+        trace_log($folder);
 
         //folder id
         $folderId = $folder['value'][0]['id'];

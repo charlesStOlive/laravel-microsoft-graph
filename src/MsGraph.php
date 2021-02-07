@@ -57,11 +57,10 @@ class MsGraph
     {
         //if no id passed get logged in user
         if ($id == null) {
-            $id = auth()->id();
+            $id = \BackendAuth::getUser()->id;
         }
 
-        //set up the provides loaded values from the config
-        $provider = new GenericProvider([
+        $obj = [
             'clientId'                => config('msgraph.clientId'),
             'clientSecret'            => config('msgraph.clientSecret'),
             'redirectUri'             => config('msgraph.redirectUri'),
@@ -69,7 +68,12 @@ class MsGraph
             'urlAccessToken'          => config('msgraph.urlAccessToken'),
             'urlResourceOwnerDetails' => config('msgraph.urlResourceOwnerDetails'),
             'scopes'                  => config('msgraph.scopes')
-        ]);
+        ];
+
+        trace_log($obj);
+
+        //set up the provides loaded values from the config
+        $provider = new GenericProvider($obj);
 
         //when no code param redirect to Microsoft
         if (!request()->has('code')) {
@@ -113,6 +117,10 @@ class MsGraph
     }
 
     /**
+     * 
+     */
+
+    /**
      * @return object
      */
     public function isConnected()
@@ -127,16 +135,16 @@ class MsGraph
      */
     public function disconnect($redirectPath = '/', $logout = true, $id = null)
     {
-        $id = ($id) ? $id : auth()->id();
+        $id = ($id) ? $id : \BackendAuth::getUser()->id;
         $token = MsGraphToken::where('user_id', $id)->first();
         if ($token != null) {
             $token->delete();
         }
 
         //if logged in and $logout is set to true then logout
-        if ($logout == true && auth()->check()) {
-            auth()->logout();
-        }
+        // if ($logout == true && auth()->check()) {
+        //     auth()->logout();
+        // }
 
         return redirect()->away('https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri='.url($redirectPath));
     }
@@ -150,7 +158,7 @@ class MsGraph
     public function getAccessToken($id = null, $returnNullNoAccessToken = null)
     {
         //use id if passed otherwise use logged in user
-        $id    = ($id) ? $id : auth()->id();
+        $id    = ($id) ? $id : \BackendAuth::getUser()->id;
         $token = MsGraphToken::where('user_id', $id)->first();
 
         // Check if tokens exist otherwise run the oauth request
@@ -200,7 +208,7 @@ class MsGraph
      */
     public function getTokenData($id = null)
     {
-        $id = ($id) ? $id : auth()->id();
+        $id = ($id) ? $id : \BackendAuth::getUser()->id;
         return MsGraphToken::where('user_id', $id)->first();
     }
 
@@ -236,7 +244,7 @@ class MsGraph
         $path    = (isset($args[0])) ? $args[0] : null;
         $data    = (isset($args[1])) ? $args[1] : null;
         $headers = (isset($args[2])) ? $args[2] : null;
-        $id      = (isset($args[3])) ? $args[3] : auth()->id();
+        $id      = (isset($args[3])) ? $args[3] : \BackendAuth::getUser()->id;
 
         if (in_array($function, $options)) {
             return self::guzzle($function, $path, $data, $headers, $id);
