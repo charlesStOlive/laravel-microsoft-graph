@@ -103,9 +103,10 @@ class Emails extends MsGraph
         trace_log($folder);
 
         //folder id
-        $folderId = $folder['value'][0]['id'];
+        $folderId = $folder['value'][0]['id'] ?? null;
 
-        //get messages from folderId
+        if($folderId) {
+            //get messages from folderId
         $emails = MsGraph::get("me/mailFolders/$folderId/messages?".$params);
 
 		$data = MsGraph::getPagination($emails, $top, $skip);
@@ -116,6 +117,11 @@ class Emails extends MsGraph
             'top' => $data['top'],
             'skip' => $data['skip']
         ];
+        } else {
+            return null;
+        }
+
+        
 	}
 
 	public function find($id)
@@ -173,6 +179,23 @@ class Emails extends MsGraph
         }
 
         return MsGraph::post('me/sendMail', self::prepareEmail());
+    }
+
+    public function make()
+    {
+        if ($this->to == null) {
+            throw new Exception("To is required.");
+        }
+
+        if ($this->subject == null) {
+            throw new Exception("Subject is required.");
+        }
+
+        if ($this->comment != null) {
+            throw new Exception("Comment is only used for replies and forwarding, please use body instead.");
+        }
+
+        return MsGraph::post('me/messages', self::prepareEmail());
     }
 
     public function reply()
