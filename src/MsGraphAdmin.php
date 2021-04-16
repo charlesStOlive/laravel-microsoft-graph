@@ -10,6 +10,7 @@ use Dcblogdev\MsGraph\Models\MsGraphToken;
 
 use Dcblogdev\MsGraph\AdminResources\Contacts;
 use Dcblogdev\MsGraph\AdminResources\Emails;
+use Dcblogdev\MsGraph\AdminResources\Files;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Exception;
@@ -24,6 +25,13 @@ class MsGraphAdmin
     public function emails()
     {
         return new Emails();
+    }
+
+    public function files()
+    {
+        $files =  new Files();
+        //Pour l'instant tout passe par un unique drive configuré dans les options.
+        return $files->userId();
     }
 
     /**
@@ -70,6 +78,9 @@ class MsGraphAdmin
                 ];
 
                 $token = $this->dopost(config('msgraph.tenantUrlAccessToken'), $params);
+
+                trace_log($params);
+                trace_log($token);
 
                 $this->storeToken($token->access_token, '', $token->expires_in);
 
@@ -168,9 +179,10 @@ class MsGraphAdmin
         $options = ['get', 'post', 'patch', 'put', 'delete'];
         $path = (isset($args[0])) ? $args[0] : null;
         $data = (isset($args[1])) ? $args[1] : null;
+        $mode = (isset($args[2])) ? $args[2] : null;
 
         if (in_array($function, $options)) {
-            return self::guzzle($function, $path, $data);
+            return self::guzzle($function, $path, $data, $mode);
         } else {
             //request verb is not in the $options array
             throw new Exception($function.' is not a valid HTTP Verb');
@@ -185,26 +197,62 @@ class MsGraphAdmin
      * @param  $id integer
      * @return json object
      */
-    protected function guzzle($type, $request, $data = [])
+    protected function guzzle($type, $request, $data = [], $mode = null)
     {
+        $doNotDecodeResponse = false;
         try {
             $client = new Client;
 
-            $response = $client->$type(self::$baseUrl.$request, [
-                'headers' => [
-                    'Authorization' => 'Bearer '.$this->getAccessToken(),
-                    'content-type' => 'application/json',
-                    'Prefer' => config('msgraph.preferTimezone')
-                ],
-                'body' => json_encode($data),
-            ]);
+            $headerAndBody = null;
+            if($mode == null) {
+                $headerAndBody =  [
+                    'headers' => [
+                        'Authorization' => 'Bearer '.$this->getAccessToken(),
+                        'content-type' => 'application/json',
+                        'Prefer' => config('msgraph.preferTimezone')
+                    ],
+                    'body' => json_encode($data),
+                ];
+           } elseif ($mode == 'noJson') {
+               $headerAndBody =  [
+                   'headers' => [
+                        'Authorization' => 'Bearer '.$this->getAccessToken(),
+                        'content-type' => 'application/json',
+                        'Prefer' => config('msgraph.preferTimezone')
+                    ],
+                'body' => $data,
+               ];
+           } else if ($mode == 'noBody') {
+               $headerAndBody =  [
+                   'headers' => [
+                        'Authorization' => 'Bearer '.$this->getAccessToken(),
+                        'Prefer' => config('msgraph.preferTimezone')
+                    ],
+               ];
+           } else if ($mode == 'noDecode') {
+               $doNotDecodeResponse = true;
+               $headerAndBody =  [
+                   'headers' => [
+                        'Authorization' => 'Bearer '.$this->getAccessToken(),
+                        'Prefer' => config('msgraph.preferTimezone')
+                    ],
+               ];
+           }
+           trace_log(self::$baseUrl.$request);
+           trace_log($mode);
+           trace_log($headerAndBody);
+
+           $response = $client->$type(self::$baseUrl.$request, $headerAndBody);
             
             if ($response == null) {
+                trace_log("response est null");
                 return null;
             }
-
-            return json_decode($response->getBody()->getContents(), true);
-
+            if($doNotDecodeResponse) {
+                 return $response->getBody()->getContents();
+            } else {
+                return json_decode($response->getBody()->getContents(), true);
+            }
         } catch (ClientException $e) {
             return json_decode(($e->getResponse()->getBody()->getContents()));
         } catch (Exception $e) {

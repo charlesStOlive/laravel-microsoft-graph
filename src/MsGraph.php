@@ -280,6 +280,8 @@ class MsGraph
                 $headers = $mainHeaders;
             }
 
+            
+
             $response = $client->$type(self::$baseUrl.$request, [
                 'headers' => $headers,
                 'body' => json_encode($data),

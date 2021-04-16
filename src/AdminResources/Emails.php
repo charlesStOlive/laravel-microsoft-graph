@@ -185,6 +185,24 @@ class Emails extends MsGraphAdmin
         return MsGraphAdmin::post('users/'.$this->userId.'/sendMail', self::prepareEmail());
     }
 
+    public function make()
+    {
+        if ($this->to == null) {
+            throw new Exception("To is required.");
+        }
+
+        if ($this->subject == null) {
+            throw new Exception("Subject is required.");
+        }
+
+        if ($this->comment != null) {
+            throw new Exception("Comment is only used for replies and forwarding, please use body instead.");
+        }
+        // trace_log('users/'.$this->userId.'/messages');
+        // trace_log(self::prepareEmail());
+        return MsGraphAdmin::post('users/'.$this->userId.'/messages', self::prepareEmail()['message']);
+    }
+
     public function reply()
     {
         if ($this->userId == null) {
@@ -199,6 +217,7 @@ class Emails extends MsGraphAdmin
             throw new Exception("Body is only used for sending new emails, please use comment instead.");
         }
 
+        
         return MsGraphAdmin::post('users/'.$this->userId.'/messages/'.$this->id.'/replyAll', self::prepareEmail());
     }
 

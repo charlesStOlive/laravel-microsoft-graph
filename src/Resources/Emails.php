@@ -178,7 +178,7 @@ class Emails extends MsGraph
             throw new Exception("Comment is only used for replies and forwarding, please use body instead.");
         }
 
-        return MsGraph::post('me/sendMail', self::prepareEmail());
+        return MsGraph::post('me/sendMail', self::prepareEmail()['message']);
     }
 
     public function make()
@@ -195,7 +195,7 @@ class Emails extends MsGraph
             throw new Exception("Comment is only used for replies and forwarding, please use body instead.");
         }
 
-        return MsGraph::post('me/messages', self::prepareEmail());
+        return MsGraph::post('me/messages', self::prepareEmail()['message']);
     }
 
     public function reply()
