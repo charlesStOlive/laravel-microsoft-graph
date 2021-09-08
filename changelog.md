@@ -74,3 +74,200 @@ Removed traits and added classes in resources instead
 ## Version 3.0.0
 
 Renamed repo to dcblogdev/laravel-microsoft-graph
+
+## Version 3.0.1
+
+Added support for Laravel 7
+
+## Version 3.0.2
+
+Calling the API with the id
+
+When calling the connect-method with explicit id it would fail trying to retrieve the users email address. This issue is fixed by calling the API with the id.
+
+## Version 3.0.3
+
+added support for Laravel 8
+
+## Version 3.0.4
+
+Laravel 8 and Guzzle 7 support
+
+Guzzle has been upgraded from version 6 to 7 and Laravel 8 (illuminate/support) has been added.
+
+Base url has also changed from the /beta endpoing to 1.0
+
+https://graph.microsoft.com/v1.0/
+
+## Version 3.0.5
+
+Support for Guzzle 6 and 7
+
+Added support for both Guzzle 6 and 7 since older versions of Laravel required Guzzle 6.
+
+## Version 3.0.6
+
+patch for guzzle 6/7
+
+## Version 3.0.7
+
+supports login ability
+
+Added new methods: isConnected() and disconnect()
+fires an event when a user logs in
+config uses tenant id for authorise urls when set in .env
+added a publishing option for listeners
+added an event NewMicrosoft365SignInEvent that fires on login.
+
+## Version 3.0.8
+
+Fix issue when connecting with specified ID
+
+Merge pull request #14 from stromgren/explicit-id
+
+Fix issue when connecting with specified ID
+
+## Version 3.0.9
+
+added file methods
+
+Added methods:
+
+List files and folders
+
+```php
+MsGraph::files()->getFiles($path = null, $order = 'asc');
+```
+
+List drive
+
+```php
+MsGraph::files()->getDrive();
+```
+
+List drives
+
+```php
+MsGraph::files()->getDrives();
+```
+
+Search items
+
+```php
+MsGraph::files()->search($term);
+```
+
+Download file by id
+
+```php
+MsGraph::files()->downloadFile($id)
+```
+
+Delete file by id
+
+```php
+MsGraph::files()->deleteFile($id)
+```
+
+Create folder pass the folder and the path where the folder will be created if no path is provided the root is used.
+
+```php
+MsGraph::files()->createFolder($name, $path = null)
+```
+
+Get file/folder item by id
+
+```php
+MsGraph::files()->getItem($id)
+```
+
+Rename file/folder pass the new name and the id
+
+```php
+MsGraph::files()->rename($name, $id)
+```
+
+Upload file passes the name and the uploadPath (where the file is on your server) and the path to where the file will be stored if no path is provided the root is used.
+
+```php
+MsGraph::files()->upload($name, $uploadPath, $path = null)
+```
+
+## Version 3.0.10
+
+Changed files to support passing the prefix to the paths such as me or groups/$groupId or sites.
+
+Example
+
+```php
+//set a custom prefix to a set group
+MsGraph::files()->getFiles($this->path, "groups/$groupId");
+
+//use the default (me)
+MsGraph::files()->getFiles($this->path);
+```
+
+## Version 3.0.11
+
+Added classes for MsGraphAdmin for working with Calendars and Events
+
+Calendar Events
+```php 
+MsGraphAdmin::calendarEvents()->userid($userId)->get();
+MsGraphAdmin::calendarEvents()->userid($userId)->find($calendarId, $eventId);
+MsGraphAdmin::calendarEvents()->userid($userId)->store($calendarId, $data);
+```
+
+Calendars
+```php 
+MsGraphAdmin::calendars()->userid($userId)->get();
+MsGraphAdmin::calendars()->userid($userId)->find($eventId);
+MsGraphAdmin::calendars()->userid($userId)->store($data);
+MsGraphAdmin::calendars()->userid($userId)->update($data);
+```
+
+Events
+```php 
+MsGraphAdmin::events()->userid($userId)->get();
+MsGraphAdmin::events()->userid($userId)->find($eventId);
+MsGraphAdmin::events()->userid($userId)->store($data);
+MsGraphAdmin::events()->userid($userId)->update($data);
+MsGraphAdmin::events()->userid($userId)->delete($data);
+```
+
+### 3.1.0
+
+Changed getPagination() to return array containing only previous and next page numbers.
+
+This method needs the data but also the total number of records, the limit ($top) and the offset ($skip)
+
+```php 
+$limit = 5;
+$skip  = request('next', 0);
+
+$messageQueryParams = [
+	"\$orderby" => "displayName",
+	"\$count"   => "true",
+	"\$skip"    => $skip,
+	"\$top"     => $limit,
+];
+
+$contacts = MsGraph::get('me/contacts?'.http_build_query($messageQueryParams));
+$total    = $contacts['@odata.count'] ?? 0;
+
+$response = MsGraph::getPagination($contacts, $total, $limit, $skip);
+$previous = $response['previous'];
+$next     = $response['next'];
+```
+
+The in a view the previous and next links can be displayed:
+
+```php 
+@if (request('next') > 0)
+	<a href='{{ url()->current().'?next='.$previous }}'>Previous Page</a>
+@endif
+
+@if ($next != 0)
+	<a href='{{ url()->current().'?next='.$next }}'>Next Page</a>
+@endif
+```

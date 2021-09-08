@@ -10,13 +10,25 @@ use Dcblogdev\MsGraph\Models\MsGraphToken;
 
 use Dcblogdev\MsGraph\AdminResources\Contacts;
 use Dcblogdev\MsGraph\AdminResources\Emails;
-use Dcblogdev\MsGraph\AdminResources\Files;
+use Dcblogdev\MsGraph\AdminResources\Events;
+use Dcblogdev\MsGraph\AdminResources\Calendars;
+use Dcblogdev\MsGraph\AdminResources\CalendarEvents;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Exception;
 
 class MsGraphAdmin
 {
+    public function calendarEvents()
+    {
+        return new CalendarEvents();
+    }
+
+    public function calendars()
+    {
+        return new Calendars();
+    }
+
     public function contacts()
     {
         return new Contacts();
@@ -25,6 +37,11 @@ class MsGraphAdmin
     public function emails()
     {
         return new Emails();
+    }
+
+    public function events()
+    {
+        return new Events();
     }
 
     public function files()
