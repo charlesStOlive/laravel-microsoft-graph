@@ -70,7 +70,7 @@ class MsGraph
             'scopes'                  => config('msgraph.scopes')
         ];
 
-        trace_log($obj);
+        //trace_log($obj);
 
         //set up the provides loaded values from the config
         $provider = new GenericProvider($obj);

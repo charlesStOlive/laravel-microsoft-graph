@@ -100,7 +100,7 @@ class Emails extends MsGraph
         //get inbox from folders list
         $folder = MsGraph::get("me/mailFolders?\$filter=startswith(displayName,'$folder')");
 
-        trace_log($folder);
+        //trace_log($folder);
 
         //folder id
         $folderId = $folder['value'][0]['id'] ?? null;

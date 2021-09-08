@@ -17,7 +17,7 @@ class Files extends MsGraphAdmin
     public function userid($userId = null)
     {
         $driveFolder = WcConfig::get('drive_folder');
-        trace_log($driveFolder);
+        //trace_log($driveFolder);
         $userDriveId =  WcConfig::get('drive_account');
         if(!$driveFolder || !$userDriveId) {
             throw new \ApplicationException('La configuration de MsGraph est incomplète, verifiez le compte et le dossier par defaut du drive dans les options');
@@ -99,10 +99,10 @@ class Files extends MsGraphAdmin
         //Recuperation de l'id du dossier
         
         $pathComplete = $pathName ? $pathName.'/'.$folderName : $folderName;
-        trace_log("chemin complet : ".$pathComplete);
+        //trace_log("chemin complet : ".$pathComplete);
         $folderId = $this->getItemId($pathComplete)['id'];
         if($folderId) {
-            trace_log("Existe déjà");
+            //trace_log("Existe déjà");
             return $folderId;
         } else {
             $creation = $this->upload($pathComplete.'/temp_delete.txt', 'temp');
@@ -140,7 +140,7 @@ class Files extends MsGraphAdmin
 
         $fragSize = 320 * 1024;
         $file = file_get_contents($uploadPath);
-        trace_log($uploadPath);
+        //trace_log($uploadPath);
         $fileSize = strlen($file);
         $numFragments = ceil($fileSize / $fragSize);
         $bytesRemaining = $fileSize;
@@ -157,7 +157,7 @@ class Files extends MsGraphAdmin
             }
             if ($stream = fopen($uploadPath, 'r')) {
                 // get contents using offset
-                trace_log($uploadPath);
+                //trace_log($uploadPath);
                 $data = stream_get_contents($stream, $chunkSize, $offset);
                 fclose($stream);
             }
@@ -169,11 +169,11 @@ class Files extends MsGraphAdmin
             ];
 
             $client = new Client;
-            trace_log($uploadUrl);
-            trace_log([
-                'headers' => $headers,
-                'body' => $data,
-            ]);
+            //trace_log($uploadUrl);
+            //trace_log([
+            //     'headers' => $headers,
+            //     'body' => $data,
+            // ]);
 
             $response = $client->put($uploadUrl, [
                 'headers' => $headers,

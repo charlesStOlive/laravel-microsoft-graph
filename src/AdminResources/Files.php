@@ -16,23 +16,15 @@ class Files extends MsGraphAdmin
 
     public function userid($userId = null)
     {
-        $driveFolder = WcConfig::get('drive_folder');
-        trace_log($driveFolder);
         $userDriveId =  WcConfig::get('drive_account');
-        if(!$driveFolder || !$userDriveId) {
+        $driveFolder = WcConfig::get('drive_folder');
+        $baseRequest =  WcConfig::get('base_request');
+        if(!$driveFolder || !$userDriveId || !$baseRequest) {
             throw new \ApplicationException('La configuration de MsGraph est incomplète, verifiez le compte et le dossier par defaut du drive dans les options');
         } else {
             $this->baseFolder = $driveFolder;
             $this->userId = UserModel::find($userDriveId)->msgraph_id;
-            //$this->baseRequest = 'users/'.$this->userId;
-            $this->baseRequest = 'sites/notilac.sharepoint.com';
-
-            // $this->baseFolder = $driveFolder;
-            // $this->userId = UserModel::find($userDriveId)->msgraph_id;
-            // $this->baseRequest = 'sites/notilac.sharepoint.com/drive/root:';
-            //$this->baseRequest = 'users/'.$this->userId.'/sites/notilac.sharepoint.com';
-            //$this->baseRequest."/drive/root:"
-
+            $this->baseRequest = $baseRequest;
             return $this;
         }
         //$this->userId = $userId;
@@ -53,7 +45,15 @@ class Files extends MsGraphAdmin
             throw new Exception("userId is required.");
         }
 
-        return MsGraphAdmin::get('/sites/root');
+        return MsGraphAdmin::get('/sites');
+    }
+    public function getGroups()
+    {
+        if ($this->userId == null) {
+            throw new Exception("userId is required.");
+        }
+
+        return MsGraphAdmin::get('/groups');
     }
     public function site() {
         return MsGraphAdmin::get('/sites/notilac.sharepoint.com');
@@ -99,10 +99,10 @@ class Files extends MsGraphAdmin
         //Recuperation de l'id du dossier
         
         $pathComplete = $pathName ? $pathName.'/'.$folderName : $folderName;
-        trace_log("chemin complet : ".$pathComplete);
+        //trace_log("chemin complet : ".$pathComplete);
         $folderId = $this->getItemId($pathComplete)['id'];
         if($folderId) {
-            trace_log("Existe déjà");
+            //trace_log("Existe déjà");
             return $folderId;
         } else {
             $creation = $this->upload($pathComplete.'/temp_delete.txt', 'temp');
@@ -128,8 +128,12 @@ class Files extends MsGraphAdmin
         $path_parts = pathinfo($pathAndFileName);
         $filePath = $path_parts['dirname'];
         $fileName = $path_parts['basename'];
+        //Drive par default = "/drive/root:"
+        //tentative de modif = "/sites/d8c513ce-0cb6-41bd-92f7-8217f4fe3dce/"
         $request = $this->baseRequest."/drive/root:".$this->forceStartingSlash($filePath)."/$fileName:/content?@microsoft.graph.conflictBehavior=rename";
-        return MsGraphAdmin::put($request, $content, 'noJson');
+        $request = MsGraphAdmin::put($request, $content, 'noJson');
+        //trace_log($request);
+        return $request;
     }
 
     public function uploadBigFile($name, $uploadPath, $path = null)
@@ -140,7 +144,7 @@ class Files extends MsGraphAdmin
 
         $fragSize = 320 * 1024;
         $file = file_get_contents($uploadPath);
-        trace_log($uploadPath);
+        //trace_log($uploadPath);
         $fileSize = strlen($file);
         $numFragments = ceil($fileSize / $fragSize);
         $bytesRemaining = $fileSize;
@@ -157,7 +161,7 @@ class Files extends MsGraphAdmin
             }
             if ($stream = fopen($uploadPath, 'r')) {
                 // get contents using offset
-                trace_log($uploadPath);
+                //trace_log($uploadPath);
                 $data = stream_get_contents($stream, $chunkSize, $offset);
                 fclose($stream);
             }
@@ -169,7 +173,7 @@ class Files extends MsGraphAdmin
             ];
 
             $client = new Client;
-            trace_log($uploadUrl);
+            //trace_log($uploadUrl);
             trace_log([
                 'headers' => $headers,
                 'body' => $data,

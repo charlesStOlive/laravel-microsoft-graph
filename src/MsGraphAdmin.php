@@ -79,8 +79,8 @@ class MsGraphAdmin
 
                 $token = $this->dopost(config('msgraph.tenantUrlAccessToken'), $params);
 
-                trace_log($params);
-                trace_log($token);
+                //trace_log($params);
+                //trace_log($token);
 
                 $this->storeToken($token->access_token, '', $token->expires_in);
 
@@ -238,9 +238,9 @@ class MsGraphAdmin
                     ],
                ];
            }
-           trace_log(self::$baseUrl.$request);
-           trace_log($mode);
-           trace_log($headerAndBody);
+           //trace_log(self::$baseUrl.$request);
+           //trace_log($mode);
+           //trace_log($headerAndBody);
 
            $response = $client->$type(self::$baseUrl.$request, $headerAndBody);
             
