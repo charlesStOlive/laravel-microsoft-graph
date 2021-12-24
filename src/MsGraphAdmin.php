@@ -49,7 +49,7 @@ class MsGraphAdmin
     {
         $files =  new Files();
         //Pour l'instant tout passe par un unique drive configuré dans les options.
-        return $files->userId();
+        return $files;
     }
 
     /**
@@ -263,7 +263,7 @@ class MsGraphAdmin
            $response = $client->$type(self::$baseUrl.$request, $headerAndBody);
             
             if ($response == null) {
-                trace_log("response est null");
+                //trace_log("response est null");
                 return null;
             }
             if($doNotDecodeResponse) {

@@ -4,7 +4,7 @@ namespace Dcblogdev\MsGraph\AdminResources;
 
 use Dcblogdev\MsGraph\Facades\MsGraphAdmin;
 use Exception;
-use Wcli\Wconfig\Models\Settings as WcConfig;
+use Waka\MsGraph\Models\Settings as MsConfig;
 use Backend\Models\User as UserModel;
 use GuzzleHttp\Client;
 
@@ -14,21 +14,30 @@ class Files extends MsGraphAdmin
     private $baseFolder;
     private $baseRequest;
 
-    public function userid($userId = null)
-    {
-        $userDriveId =  WcConfig::get('drive_account');
-        $driveFolder = WcConfig::get('drive_folder');
-        $baseRequest =  WcConfig::get('base_request');
-        if(!$driveFolder || !$userDriveId || !$baseRequest) {
+    public function __construct() {
+        $this->baseFolder = MsConfig::get('drive_folder');
+        $this->baseRequest =  MsConfig::get('base_request');
+        if(!$this->baseFolder || !$this->baseRequest) {
             throw new \ApplicationException('La configuration de MsGraph est incomplète, verifiez le compte et le dossier par defaut du drive dans les options');
-        } else {
-            $this->baseFolder = $driveFolder;
-            $this->userId = UserModel::find($userDriveId)->msgraph_id;
-            $this->baseRequest = $baseRequest;
-            return $this;
         }
-        //$this->userId = $userId;
-        
+    }
+
+    /**
+     * FONCTION NE MARCHE PAS ACTUELLEMENT OU EST SURTOUT INUTILE
+     */
+
+    public function setUser($userId = null)
+    {
+        $userDriveId =  MsConfig::get('drive_account');
+        if(!$userDriveId && !$userId) {
+            throw new \ApplicationException('Pour un utilisateur il faut soit le compte principal dans le drive, soit passer l\'id dans les paramètres de userId()');
+        } elseif($userId) {
+            $this->userId = UserModel::find($userId)->msgraph_id;
+        } else {
+            $this->userId = UserModel::find($userDriveId)->msgraph_id;
+        }
+        $this->baseRequest = 'users/'.$this->userId.'/';
+        return $this;
     }
 
     public function getDrives()
@@ -41,29 +50,29 @@ class Files extends MsGraphAdmin
     }
     public function getSites()
     {
-        if ($this->userId == null) {
-            throw new Exception("userId is required.");
-        }
+        // if ($this->userId == null) {
+        //     throw new Exception("userId is required.");
+        // }
 
         return MsGraphAdmin::get('/sites');
     }
     public function getGroups()
     {
-        if ($this->userId == null) {
-            throw new Exception("userId is required.");
-        }
+        // if ($this->userId == null) {
+        //     throw new Exception("userId is required.");
+        // }
 
         return MsGraphAdmin::get('/groups');
     }
-    public function site() {
-        return MsGraphAdmin::get('/sites/notilac.sharepoint.com');
-    }
+    // public function site() {
+    //     return MsGraphAdmin::get($this->baseRequest);
+    // }
 
     public function downloadFile($id)
     {
-        if ($this->userId == null) {
-            throw new Exception("userId is required.");
-        }
+        // if ($this->userId == null) {
+        //     throw new Exception("userId is required.");
+        // }
 
         $id = MsGraphAdmin::get($this->baseRequest.'/drive/items/'.$id);
 
@@ -130,7 +139,9 @@ class Files extends MsGraphAdmin
         $fileName = $path_parts['basename'];
         //Drive par default = "/drive/root:"
         //tentative de modif = "/sites/d8c513ce-0cb6-41bd-92f7-8217f4fe3dce/"
+        //trace_log($this->baseRequest);
         $request = $this->baseRequest."/drive/root:".$this->forceStartingSlash($filePath)."/$fileName:/content?@microsoft.graph.conflictBehavior=rename";
+        //trace_log($request);
         $request = MsGraphAdmin::put($request, $content, 'noJson');
         //trace_log($request);
         return $request;
@@ -174,10 +185,6 @@ class Files extends MsGraphAdmin
 
             $client = new Client;
             //trace_log($uploadUrl);
-            trace_log([
-                'headers' => $headers,
-                'body' => $data,
-            ]);
 
             $response = $client->put($uploadUrl, [
                 'headers' => $headers,
