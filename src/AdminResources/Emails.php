@@ -18,6 +18,7 @@ class Emails extends MsGraphAdmin
     private $cc;
     private $bcc;
     private $attachments;
+    private $attachmentsInline;
 
     public function userid($userId)
     {
@@ -70,6 +71,12 @@ class Emails extends MsGraphAdmin
     public function attachments(array $attachments)
     {
         $this->attachments = $attachments;
+        return $this;
+    }
+
+    public function attachmentsInLine(array $attachmentsInline)
+    {
+        $this->attachmentsInline = $attachmentsInline;
         return $this;
     }
 
@@ -256,6 +263,7 @@ class Emails extends MsGraphAdmin
         $cc = $this->cc;
         $bcc = $this->bcc;
         $attachments = $this->attachments;
+        $attachmentsInline = $this->attachmentsInline;
 
         $toArray = [];
         if ($to != null) {
@@ -291,6 +299,19 @@ class Emails extends MsGraphAdmin
                 ];
             }
         }
+        $attachmentInlinearray = [];
+        if ($attachmentsInline != null) {
+            foreach($attachmentsInline as $key=>$file) {
+                $path = pathinfo($file);
+                $attachmentInlinearray[] = [
+                    '@odata.type' => '#microsoft.graph.fileAttachment',
+                    'name' => $path['basename'],
+                    "isInline" => true,
+                    'contentId' => $key,
+                    'contentBytes' => base64_encode(file_get_contents($file))
+                ];
+            }
+        }
 
         $envelope = [];
         if ($subject != null) {
@@ -311,8 +332,8 @@ class Emails extends MsGraphAdmin
         if ($bccArray != null) {
             $envelope['message']['bccRecipients'] = $bccArray;
         }
-        if ($attachmentarray != null) {
-            $envelope['message']['attachments'] = $attachmentarray;
+        if ($attachmentarray != [] or $attachmentInlinearray != []) {
+            $envelope['message']['attachments'] = array_merge($attachmentarray, $attachmentInlinearray);
         }
         if ($comment != null) {
             $envelope['comment'] = $comment;
