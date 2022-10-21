@@ -28,7 +28,7 @@ class Files extends MsGraphAdmin
 
     public function setUser($userId = null)
     {
-<<<<<<< HEAD
+
         $userDriveId =  MsConfig::get('drive_account');
         if(!$userDriveId && !$userId) {
             throw new \ApplicationException('Pour un utilisateur il faut soit le compte principal dans le drive, soit passer l\'id dans les paramètres de userId()');
@@ -38,10 +38,6 @@ class Files extends MsGraphAdmin
             $this->userId = UserModel::find($userDriveId)->msgraph_id;
         }
         $this->baseRequest = 'users/'.$this->userId.'/';
-=======
-        $this->userId = $userId;
-
->>>>>>> master
         return $this;
     }
 
@@ -75,16 +71,9 @@ class Files extends MsGraphAdmin
 
     public function downloadFile($id)
     {
-<<<<<<< HEAD
-        // if ($this->userId == null) {
-        //     throw new Exception("userId is required.");
-        // }
-=======
         if ($this->userId == null) {
             throw new Exception('userId is required.');
         }
->>>>>>> master
-
         $id = MsGraphAdmin::get($this->baseRequest.'/drive/items/'.$id);
 
         return redirect()->away($id['@microsoft.graph.downloadUrl']);
@@ -160,7 +149,7 @@ class Files extends MsGraphAdmin
 
     public function uploadBigFile($name, $uploadPath, $path = null)
     {
-<<<<<<< HEAD
+
         $finalPath = $path ? $this->baseFolder.'/'.$path : $this->baseFolder;
         $uploadSession = $this->createUploadSession($name, $finalPath);
         $uploadUrl = $uploadSession['uploadUrl'];
@@ -225,10 +214,6 @@ class Files extends MsGraphAdmin
     {
         if (substr($string, 0, 1) !== "/") {
             $string = "/$string";
-=======
-        if ($this->userId == null) {
-            throw new Exception('userId is required.');
->>>>>>> master
         }
 
         return $string;

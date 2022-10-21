@@ -125,16 +125,13 @@ class Emails extends MsGraph
             'top'    => $data['top'],
             'skip'   => $data['skip'],
         ];
-<<<<<<< HEAD
+
         } else {
             return null;
         }
 
         
 	}
-=======
-    }
->>>>>>> master
 
     public function find($id)
     {
